@@ -1,0 +1,11 @@
+1. Открой CycloRoute-Personal.osf через OsmAnd и импортируй всё.
+2. В велосипедном профиле: Configure map → Map style → CycloRoutePersonalMVP.
+3. Удерживай + или − на карте → Map magnifier → 25%.
+   Затем выставь кнопками карты нужную линейку, например 5 km.
+
+Легенда: My Places → My Favourites → CycloRoute Personal.
+
+Ещё толще: в line-widths.json увеличь width на 1–2, запусти
+python3 release.py и заново импортируй получившийся .osf с заменой файлов.
+
+Для просмотра карты BRouter устанавливать не требуется.
