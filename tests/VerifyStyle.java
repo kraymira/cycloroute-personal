@@ -8,6 +8,7 @@ public class VerifyStyle {
  static Path dir;
  static String roadStyle="";
  static boolean overlays=false;
+ static String bikeWidth="";
  static Map<String,String> constants=new HashMap<>();
  static RenderingRulesStorage load(String name) throws Exception {
   RenderingRulesStorage r=new RenderingRulesStorage(name,constants);
@@ -28,6 +29,7 @@ public class VerifyStyle {
   }
   r.setStringFilter(s.PROPS.get("baseAppMode"),"bicycle");
   r.setStringFilter(s.PROPS.get("roadStyle"),roadStyle);
+  if(s.PROPS.get("cyclorouteBikeWidth")!=null)r.setStringFilter(s.PROPS.get("cyclorouteBikeWidth"),bikeWidth);
   r.setBooleanFilter(s.PROPS.get("showSurfaces"),overlays);
   r.setBooleanFilter(s.PROPS.get("showSurfaceGrade"),overlays);
   r.setBooleanFilter(s.PROPS.get("showAccess"),true);
