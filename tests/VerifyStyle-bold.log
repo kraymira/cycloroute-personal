@@ -1,0 +1,4 @@
+PASS 1839 rendering-rule colour checks, parsed with OsmAnd RenderingRulesStorage
+Nov 03, 2026 11:40:53 PM net.osmand.osm.MapRenderingTypes initFromInputStream
+INFO: Time to init poi types 116
+PASS: legend OBF readable, map section present, no routing section
