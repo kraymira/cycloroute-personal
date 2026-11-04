@@ -1,0 +1,106 @@
+# CycloRoute Personal MVP: prefer infrastructure, allow legal road connections.
+# 1.20 is a soft cost setting, NOT an enforced maximum route-length ratio.
+---context:global
+assign validForBikes = true
+assign validForFoot = false
+assign validForCars = false
+assign turnInstructionMode = 3
+assign processUnusedTags = true
+assign waypointCatchingRange = 100
+assign use_dynamic_range = false
+assign add_beeline = false
+assign pass1coefficient = 1.0
+assign pass2coefficient = 0
+# Spain and other right-hand-traffic countries. Change explicitly for LHT.
+assign left_hand_traffic = false
+
+# No slope or turn penalties: keep detour preference modest.
+assign uphillcost = 0
+assign downhillcost = 0
+
+---context:way
+assign reverse = reversedirection=yes
+assign explicit_bike_access = bicycle=yes|designated|permissive
+assign access_blocked =
+  if not or bicycle= bicycle=yes|designated|permissive then true
+  else if explicit_bike_access then false
+  else or access=no|private|destination|customers vehicle=no|private|destination
+assign direction_blocked =
+  or and bicycle:forward=no|use_sidepath not reverse
+     and bicycle:backward=no|use_sidepath reverse
+assign motor_oneway =
+  if oneway=no then false
+  else or oneway=yes|true|1 junction=roundabout
+assign normal_oneway_blocked =
+  if oneway:bicycle=no then false
+  else if not or oneway= oneway=yes|no|-1|1|true then true
+  else if not or oneway:bicycle= oneway:bicycle=yes|no then true
+  else if oneway:bicycle=yes then reverse
+  else if oneway=-1 then not reverse
+  else and motor_oneway reverse
+
+assign right_track =
+  if not cycleway:right= then cycleway:right=track
+  else cycleway:both=track
+assign left_track =
+  if not cycleway:left= then cycleway:left=track
+  else cycleway:both=track
+assign right_direction =
+  if cycleway:right:oneway=no then true
+  else if cycleway:right:oneway=-1 then reverse
+  else if cycleway:right:oneway=yes then not reverse
+  else if motor_oneway then not reverse
+  else if oneway=-1 then reverse
+  else if left_hand_traffic then reverse else not reverse
+assign left_direction =
+  if cycleway:left:oneway=no then true
+  else if cycleway:left:oneway=-1 then reverse
+  else if cycleway:left:oneway=yes then not reverse
+  else if motor_oneway then not reverse
+  else if oneway=-1 then reverse
+  else if left_hand_traffic then not reverse else reverse
+assign explicit_side_track =
+  or and right_track right_direction and left_track left_direction
+# Generic cycleway=track implies both sides. Specific side tags override it.
+assign generic_track =
+  and cycleway=track and cycleway:left= and cycleway:right= cycleway:both=
+assign attached_track =
+  or explicit_side_track and generic_track not normal_oneway_blocked
+assign cycle_path =
+  or highway=cycleway and highway=path|footway bicycle=designated
+assign bicycle_street = or bicycle_road=yes|designated cyclestreet=yes|designated
+assign admissible =
+  or and or cycle_path bicycle_street not normal_oneway_blocked attached_track
+assign forbidden_kind =
+  or highway= or highway=steps|elevator|construction|proposed|abandoned
+  or route=ferry or motorroad=yes highway=motorway|motorway_link
+# A normal road remains usable only in its legally permitted direction.
+assign normal_road = highway=residential|living_street|service|unclassified|tertiary|tertiary_link|secondary|secondary_link|primary|primary_link|track|road
+assign explicit_path = and highway=path|footway|pedestrian|bridleway explicit_bike_access
+assign usable = or admissible and or normal_road explicit_path not normal_oneway_blocked
+assign right_lane = if not cycleway:right= then cycleway:right=lane else cycleway:both=lane
+assign left_lane = if not cycleway:left= then cycleway:left=lane else cycleway:both=lane
+assign generic_lane = and cycleway=lane and cycleway:left= and cycleway:right= cycleway:both=
+assign painted_lane =
+  or and right_lane right_direction
+     or and left_lane left_direction and generic_lane not normal_oneway_blocked
+assign shared = or cycleway=shared_lane|share_busway
+  or and cycleway:right=shared_lane|share_busway right_direction
+     or and cycleway:left=shared_lane|share_busway left_direction cycleway:both=shared_lane|share_busway
+assign costfactor =
+  if or forbidden_kind or access_blocked direction_blocked then 10000
+  else if not usable then 10000
+  else 1
+assign turncost = 0
+assign initialcost = 0
+assign nodeaccessgranted = false
+assign classifiermask = 0
+
+---context:node
+# A cycle route relation never overrides a gate or explicit bicycle prohibition.
+assign node_bike_access = bicycle=yes|designated|permissive
+assign initialcost =
+  if not or bicycle= bicycle=yes|designated|permissive then 1000000
+  else if and not node_bike_access or access=no|private vehicle=no|private then 1000000
+  else if and not node_bike_access barrier=gate|lift_gate|cycle_barrier|stile|turnstile|block then 1000000
+    else 0
