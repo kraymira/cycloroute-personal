@@ -10,6 +10,8 @@ RENDER = DIST/'rendering'
 RENDER.mkdir(parents=True, exist_ok=True)
 BLUE, LANE, MIXED, STREET, SHARED = '#174BCC','#6C91EF','#4A9FD9','#7DB1D4','#7DC8D4'
 PALETTE = {'cycleway':BLUE,'lane':LANE,'mixed':MIXED,'street':STREET,'shared':SHARED}
+WIDTH_PROPERTY = 'cyclorouteBikeWidth'
+WIDTH_MODES = (('Толще', 1.5), ('Максимальная', 2))
 
 def load(name):
     return ET.parse(SRC/name, parser=ET.XMLParser(target=ET.TreeBuilder(insert_comments=True))).getroot()
@@ -46,6 +48,14 @@ def set_attribute(root,name,day,night=None):
 base, cyc = load('default.original.render.xml'), load('CycloRoute.original.render.xml')
 base.set('name','CycloRoutePersonalBase')
 cyc.set('name','CycloRoute Personal');cyc.set('depends','CycloRoutePersonalBase')
+# Define in the parent: bicycle-street rules are parsed there as well.
+# OsmAnd adds the empty/default choice itself, giving exactly three choices.
+base.insert(0, ET.Element('renderingProperty', {
+    'attr': WIDTH_PROPERTY, 'name': 'Толщина велолиний', 'type': 'string',
+    'description': 'Текущая — ×1; Толще — ×1.5; Максимальная — ×2. Только велолинии.',
+    'possibleValues': ','.join(name for name, _ in WIDTH_MODES),
+    'defaultValueDescription': 'Текущая',
+}))
 
 # Freeze the parent so future changes to the built-in default cannot reintroduce
 # blue road colours. Non-road sections are retained byte-for-byte semantically.
@@ -109,7 +119,12 @@ def bike_widths(parent, attr='strokeWidth', extra=0, casing=None):
         a={'minzoom':str(lo),attr:str(w+extra)}
         if casing:a[casing]=str(w+extra+2)
         if hi is not None:a['maxzoom']=str(hi)
-        ET.SubElement(parent,'apply_if',a)
+        rule = ET.SubElement(parent,'apply_if',a)
+        for name, multiplier in WIDTH_MODES:
+            scaled = (w + extra) * multiplier
+            override = {WIDTH_PROPERTY: name, attr: f'{scaled:g}'}
+            if casing: override[casing] = f'{scaled + 2:g}'
+            ET.SubElement(rule, 'apply_if', override)
 
 def prohibition(parent, width='9:3'):
     ET.SubElement(parent,'apply_if',{'additional':'bicycle=no','minzoom':'13','color_5':'#D32F2F','strokeWidth_5':width,'pathEffect_5':'1_7','cap_5':'BUTT'})

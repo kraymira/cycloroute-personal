@@ -52,10 +52,17 @@ def build():
         for name, path in files.items():
             archive.write(path, name)
     manifest = {
-        'version': '1.1-share',
+        'version': '1.2',
         'style_display_name': 'CycloRoutePersonalMVP',
         'target': 'Android OsmAnd 5.4.11',
         'recommended_map_magnifier_percent': 25,
+        'bike_width_setting': {
+            'attr': 'cyclorouteBikeWidth',
+            'name': 'Толщина велолиний',
+            'default': '',
+            'choices': {'Текущая': 1, 'Толще': 1.5, 'Максимальная': 2},
+            'casing_extra': 2,
+        },
         'imports_navigation_profile': False,
         'upstream_cycloroute_commit': 'bddd8ba813918659a9c562ad8960c29ac1384350',
         'upstream_osmand_resources_commit': '17e7e474005ee33ce894d6f8838f3b4428b705e4',
