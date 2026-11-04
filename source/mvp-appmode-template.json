@@ -1,0 +1,13 @@
+{
+  "iconColor": "BLUE",
+  "iconName": "mx_activities_bicycle",
+  "locIcon": "BICYCLE",
+  "navIcon": "DEFAULT",
+  "order": 14,
+  "parent": "bicycle",
+  "routeService": "BROUTER",
+  "routingProfile": "BROUTER_MODE",
+  "stringKey": "bicycle_cycleways_mvp",
+  "userProfileName": "Brouter[cycleways-preferred]",
+  "version": -1
+}

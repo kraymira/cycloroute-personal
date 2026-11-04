@@ -1,0 +1,8 @@
+{
+  "renderer": "CycloRoutePersonalMVP",
+  "map_density_n": "0.25",
+  "nrenderer_baseAppMode": "bicycle",
+  "nrenderer_roadStyle": "boldOutline",
+  "nrenderer_showCycleRoutes": "false",
+  "route_line_coloring_type": "DEFAULT"
+}
