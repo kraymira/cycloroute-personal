@@ -1,0 +1,16 @@
+{
+  "version": "1.1-share",
+  "style_display_name": "CycloRoutePersonalMVP",
+  "target": "Android OsmAnd 5.4.11",
+  "recommended_map_magnifier_percent": 25,
+  "imports_navigation_profile": false,
+  "upstream_cycloroute_commit": "bddd8ba813918659a9c562ad8960c29ac1384350",
+  "upstream_osmand_resources_commit": "17e7e474005ee33ce894d6f8838f3b4428b705e4",
+  "sha256": {
+    "rendering/CycloRoutePersonalMVP.render.xml": "ea3a2dc1fe4722f1ecb6fcd8b2d7ddf8f2211aacd7d3448ac1b87e3cb51aa828",
+    "rendering/CycloRoutePersonalBase.render.xml": "8eb347b35395294a483431748a57c0f6ad03d4c4b7b87931fc676bc35fb6b201",
+    "CycloRoutePersonalLegend.obf": "be7da20b2169204a9030f9dc48f0070c861d200ff4398720547462996ccf64f7",
+    "favourites.gpx": "d6084ab0d4d5c065328c2a5f2bd49593a8e1b2947948dda7ec28cad5a56a4329"
+  },
+  "osf_sha256": "fe3ab430f7f1ef80d869d8f441dbd2dce4ab8ea913ee8918f5c940c3c953b3a1"
+}
