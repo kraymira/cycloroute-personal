@@ -1,0 +1,2 @@
+PASS 1839 rendering-rule colour and width checks, parsed with OsmAnd RenderingRulesStorage
+PASS: legend OBF readable, map section present, no routing section

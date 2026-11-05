@@ -27,16 +27,29 @@ with zipfile.ZipFile(ROOT / 'releases/CycloRoute-Personal-1.1.osf') as old, \
     for name in old.namelist():
         if name.endswith('.render.xml'):
             assert semantic(ET.fromstring(old.read(name))) == without_new_setting(new.read(name)), name
-        else:
+        elif name not in {'CycloRoutePersonalLegend.obf', 'favourites.gpx'}:
             assert old.read(name) == new.read(name), f'Unchanged resource modified: {name}'
     manifest = json.loads((ROOT / 'manifest.json').read_text())
     for name, expected in manifest['sha256'].items():
         assert hashlib.sha256(new.read(name)).hexdigest() == expected, name
-    assert manifest['version'] == '1.2'
+    assert manifest['version'] == '1.3'
     assert not manifest['imports_navigation_profile']
     assert hashlib.sha256((ROOT / 'CycloRoute-Personal.osf').read_bytes()).hexdigest() == manifest['osf_sha256']
     parent = ET.fromstring(new.read('rendering/CycloRoutePersonalBase.render.xml'))
     prop = next(p for p in parent.findall('renderingProperty') if p.get('attr') == 'cyclorouteBikeWidth')
-    assert prop.get('possibleValues') == 'Толще,Максимальная'
-    assert prop.get('defaultValueDescription') == 'Текущая'
-print('PASS: package hashes, rollback package, unchanged legend/resources, and all existing style rules preserved')
+    assert prop.get('possibleValues') == 'Thicker,Maximum'
+    assert prop.get('defaultValueDescription') == 'Standard'
+    assert prop.get('name') == 'Bicycle line width'
+    osm = ET.parse(ROOT / 'source/CycloRoutePersonalLegend.osm')
+    labels = [e.get('v') for e in osm.findall("way/tag[@k='name']")]
+    assert len(labels) == 25 and all(label.isascii() for label in labels)
+    assert labels[:8] == ['Separated cycleway', 'Painted cycle lane', 'Shared pedestrian / cycle path', 'Bicycle street', 'Shared lane with traffic', 'Shared bus lane', 'Roadside separated cycleway', 'Cycling prohibited']
+    binary = new.read('CycloRoutePersonalLegend.obf')
+    assert binary == (ROOT / 'source/CycloRoutePersonalLegend.obf').read_bytes()
+    for label in labels:
+        assert label.encode() in binary, f'Missing binary map label: {label}'
+    gpx = ET.fromstring(new.read('favourites.gpx'))
+    ns = {'g': 'http://www.topografix.com/GPX/1/1'}
+    assert gpx.find('g:wpt/g:name', ns).text == 'CycloRoute Personal Legend'
+    assert gpx.find('g:wpt/g:type', ns).text == 'CycloRoute Personal'
+print('PASS: package hashes, unchanged rendering rules, 25 English OBF labels, favourite and rollback package')

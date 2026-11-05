@@ -6,7 +6,7 @@
     <nd ref="1000000001" />
     <nd ref="1000000002" />
     <tag k="highway" v="cycleway" />
-    <tag k="name" v="Обособленная велодорожка" />
+    <tag k="name" v="Separated cycleway" />
   </way>
   <node id="1000000004" lat="45.7380500" lon="36.5500000" version="1" />
   <node id="1000000005" lat="45.7380500" lon="36.5530000" version="1" />
@@ -15,7 +15,7 @@
     <nd ref="1000000005" />
     <tag k="highway" v="residential" />
     <tag k="cycleway" v="lane" />
-    <tag k="name" v="Велополоса — разметка" />
+    <tag k="name" v="Painted cycle lane" />
   </way>
   <node id="1000000007" lat="45.7373000" lon="36.5500000" version="1" />
   <node id="1000000008" lat="45.7373000" lon="36.5530000" version="1" />
@@ -25,7 +25,7 @@
     <tag k="highway" v="path" />
     <tag k="bicycle" v="designated" />
     <tag k="foot" v="designated" />
-    <tag k="name" v="Велопешеходный путь" />
+    <tag k="name" v="Shared pedestrian / cycle path" />
   </way>
   <node id="1000000010" lat="45.7365500" lon="36.5500000" version="1" />
   <node id="1000000011" lat="45.7365500" lon="36.5530000" version="1" />
@@ -34,7 +34,7 @@
     <nd ref="1000000011" />
     <tag k="highway" v="residential" />
     <tag k="bicycle_road" v="yes" />
-    <tag k="name" v="Улица с велорежимом" />
+    <tag k="name" v="Bicycle street" />
   </way>
   <node id="1000000013" lat="45.7358000" lon="36.5500000" version="1" />
   <node id="1000000014" lat="45.7358000" lon="36.5530000" version="1" />
@@ -43,7 +43,7 @@
     <nd ref="1000000014" />
     <tag k="highway" v="residential" />
     <tag k="cycleway" v="shared_lane" />
-    <tag k="name" v="Общая полоса с машинами" />
+    <tag k="name" v="Shared lane with traffic" />
   </way>
   <node id="1000000016" lat="45.7350500" lon="36.5500000" version="1" />
   <node id="1000000017" lat="45.7350500" lon="36.5530000" version="1" />
@@ -52,7 +52,7 @@
     <nd ref="1000000017" />
     <tag k="highway" v="residential" />
     <tag k="cycleway" v="share_busway" />
-    <tag k="name" v="Полоса с автобусами" />
+    <tag k="name" v="Shared bus lane" />
   </way>
   <node id="1000000019" lat="45.7343000" lon="36.5500000" version="1" />
   <node id="1000000020" lat="45.7343000" lon="36.5530000" version="1" />
@@ -61,7 +61,7 @@
     <nd ref="1000000020" />
     <tag k="highway" v="residential" />
     <tag k="cycleway" v="track" />
-    <tag k="name" v="Обособленная вдоль дороги" />
+    <tag k="name" v="Roadside separated cycleway" />
   </way>
   <node id="1000000022" lat="45.7335500" lon="36.5500000" version="1" />
   <node id="1000000023" lat="45.7335500" lon="36.5530000" version="1" />
@@ -70,7 +70,7 @@
     <nd ref="1000000023" />
     <tag k="highway" v="residential" />
     <tag k="bicycle" v="no" />
-    <tag k="name" v="Езда на велосипеде запрещена" />
+    <tag k="name" v="Cycling prohibited" />
   </way>
   <node id="1000000025" lat="45.7328000" lon="36.5500000" version="1" />
   <node id="1000000026" lat="45.7328000" lon="36.5530000" version="1" />
@@ -78,7 +78,7 @@
     <nd ref="1000000025" />
     <nd ref="1000000026" />
     <tag k="highway" v="motorway" />
-    <tag k="name" v="Автомагистраль" />
+    <tag k="name" v="Motorway" />
   </way>
   <node id="1000000028" lat="45.7320500" lon="36.5500000" version="1" />
   <node id="1000000029" lat="45.7320500" lon="36.5530000" version="1" />
@@ -86,7 +86,7 @@
     <nd ref="1000000028" />
     <nd ref="1000000029" />
     <tag k="highway" v="trunk" />
-    <tag k="name" v="Крупная магистраль" />
+    <tag k="name" v="Trunk road" />
   </way>
   <node id="1000000031" lat="45.7313000" lon="36.5500000" version="1" />
   <node id="1000000032" lat="45.7313000" lon="36.5530000" version="1" />
@@ -94,7 +94,7 @@
     <nd ref="1000000031" />
     <nd ref="1000000032" />
     <tag k="highway" v="primary" />
-    <tag k="name" v="Главная дорога" />
+    <tag k="name" v="Primary road" />
   </way>
   <node id="1000000034" lat="45.7305500" lon="36.5500000" version="1" />
   <node id="1000000035" lat="45.7305500" lon="36.5530000" version="1" />
@@ -102,7 +102,7 @@
     <nd ref="1000000034" />
     <nd ref="1000000035" />
     <tag k="highway" v="secondary" />
-    <tag k="name" v="Второстепенная дорога" />
+    <tag k="name" v="Secondary road" />
   </way>
   <node id="1000000037" lat="45.7298000" lon="36.5500000" version="1" />
   <node id="1000000038" lat="45.7298000" lon="36.5530000" version="1" />
@@ -110,7 +110,7 @@
     <nd ref="1000000037" />
     <nd ref="1000000038" />
     <tag k="highway" v="tertiary" />
-    <tag k="name" v="Местная связующая дорога" />
+    <tag k="name" v="Tertiary road" />
   </way>
   <node id="1000000040" lat="45.7290500" lon="36.5500000" version="1" />
   <node id="1000000041" lat="45.7290500" lon="36.5530000" version="1" />
@@ -118,7 +118,7 @@
     <nd ref="1000000040" />
     <nd ref="1000000041" />
     <tag k="highway" v="residential" />
-    <tag k="name" v="Жилая улица" />
+    <tag k="name" v="Residential street" />
   </way>
   <node id="1000000043" lat="45.7283000" lon="36.5500000" version="1" />
   <node id="1000000044" lat="45.7283000" lon="36.5530000" version="1" />
@@ -126,7 +126,7 @@
     <nd ref="1000000043" />
     <nd ref="1000000044" />
     <tag k="highway" v="service" />
-    <tag k="name" v="Служебный проезд" />
+    <tag k="name" v="Service road" />
   </way>
   <node id="1000000046" lat="45.7275500" lon="36.5500000" version="1" />
   <node id="1000000047" lat="45.7275500" lon="36.5530000" version="1" />
@@ -134,7 +134,7 @@
     <nd ref="1000000046" />
     <nd ref="1000000047" />
     <tag k="highway" v="track" />
-    <tag k="name" v="Хозяйственная дорога" />
+    <tag k="name" v="Track" />
   </way>
   <node id="1000000049" lat="45.7268000" lon="36.5500000" version="1" />
   <node id="1000000050" lat="45.7268000" lon="36.5530000" version="1" />
@@ -142,7 +142,7 @@
     <nd ref="1000000049" />
     <nd ref="1000000050" />
     <tag k="highway" v="path" />
-    <tag k="name" v="Обычная тропа" />
+    <tag k="name" v="Path" />
   </way>
   <node id="1000000052" lat="45.7260500" lon="36.5500000" version="1" />
   <node id="1000000053" lat="45.7260500" lon="36.5530000" version="1" />
@@ -150,7 +150,7 @@
     <nd ref="1000000052" />
     <nd ref="1000000053" />
     <tag k="highway" v="footway" />
-    <tag k="name" v="Пешеходная дорожка" />
+    <tag k="name" v="Footway" />
   </way>
   <node id="1000000055" lat="45.7253000" lon="36.5500000" version="1" />
   <node id="1000000056" lat="45.7253000" lon="36.5530000" version="1" />
@@ -158,7 +158,7 @@
     <nd ref="1000000055" />
     <nd ref="1000000056" />
     <tag k="highway" v="bridleway" />
-    <tag k="name" v="Конная дорожка" />
+    <tag k="name" v="Bridleway" />
   </way>
   <node id="1000000058" lat="45.7245500" lon="36.5500000" version="1" />
   <node id="1000000059" lat="45.7245500" lon="36.5530000" version="1" />
@@ -166,7 +166,7 @@
     <nd ref="1000000058" />
     <nd ref="1000000059" />
     <tag k="highway" v="steps" />
-    <tag k="name" v="Лестница" />
+    <tag k="name" v="Steps" />
   </way>
   <node id="1000000061" lat="45.7238000" lon="36.5500000" version="1" />
   <node id="1000000062" lat="45.7238000" lon="36.5530000" version="1" />
@@ -176,7 +176,7 @@
     <tag k="highway" v="cycleway" />
     <tag k="bridge" v="yes" />
     <tag k="layer" v="1" />
-    <tag k="name" v="Мост" />
+    <tag k="name" v="Bridge" />
   </way>
   <node id="1000000064" lat="45.7230500" lon="36.5500000" version="1" />
   <node id="1000000065" lat="45.7230500" lon="36.5530000" version="1" />
@@ -186,7 +186,7 @@
     <tag k="highway" v="cycleway" />
     <tag k="tunnel" v="yes" />
     <tag k="layer" v="-1" />
-    <tag k="name" v="Тоннель" />
+    <tag k="name" v="Tunnel" />
   </way>
   <node id="1000000067" lat="45.7223000" lon="36.5500000" version="1" />
   <node id="1000000068" lat="45.7223000" lon="36.5530000" version="1" />
@@ -195,7 +195,7 @@
     <nd ref="1000000068" />
     <tag k="highway" v="cycleway" />
     <tag k="foot" v="designated" />
-    <tag k="name" v="Дорожка с велосипедами и пешеходами" />
+    <tag k="name" v="Shared pedestrian / cycle path" />
   </way>
   <node id="1000000070" lat="45.7215500" lon="36.5500000" version="1" />
   <node id="1000000071" lat="45.7215500" lon="36.5530000" version="1" />
@@ -204,7 +204,7 @@
     <nd ref="1000000071" />
     <tag k="highway" v="residential" />
     <tag k="cycleway:right" v="lane" />
-    <tag k="name" v="Велополоса справа" />
+    <tag k="name" v="Cycle lane on the right" />
   </way>
   <node id="1000000073" lat="45.7208000" lon="36.5500000" version="1" />
   <node id="1000000074" lat="45.7208000" lon="36.5530000" version="1" />
@@ -213,6 +213,6 @@
     <nd ref="1000000074" />
     <tag k="highway" v="residential" />
     <tag k="cycleway:right" v="track" />
-    <tag k="name" v="Велодорожка справа" />
+    <tag k="name" v="Separated cycleway on the right" />
   </way>
 </osm>

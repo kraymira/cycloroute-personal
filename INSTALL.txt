@@ -1,17 +1,27 @@
-1. Открой CycloRoute-Personal.osf через OsmAnd и импортируй всё.
-2. В велосипедном профиле: Configure map → Map style → CycloRoutePersonalMVP.
-3. Configure map → Толщина велолиний → Текущая / Толще / Максимальная.
-   Толщина меняется без повторного импорта; при необходимости прокрути меню вниз.
-4. Удерживай + или − на карте → Map magnifier → 25%.
-   Затем выставь кнопками карты нужную линейку, например 5 km.
+CycloRoute Personal 1.3 — English legend
 
-Легенда: My Places → My Favourites → CycloRoute Personal.
+1. Open CycloRoute-Personal.osf with OsmAnd, or use Settings > Import from file.
+2. Import all resources. Replace existing style files and the legend OBF.
+3. Select your cycling map profile, then Configure map > Map style > CycloRoutePersonalMVP.
+4. Configure map > Bicycle line width > Standard / Thicker / Maximum.
+   Changing width does not require another import. Saved 1.2 Russian values still work.
+5. Optional: hold + or - > Map magnifier > 25%, then adjust zoom normally.
 
-Назад: выбери «Текущая». Полный возврат к 1.1 — импортируй
-releases/CycloRoute-Personal-1.1.osf из исходников с заменой файлов.
+Legend:
+My Places > My Favourites > CycloRoute Personal > CycloRoute Personal Legend.
+It is a separate offline demonstration map, not an overlay panel or a real road network.
+Zoom to level 17-18, scroll down for samples; use the location button to return.
+An old Russian legend bookmark may remain after upgrading; remove it if duplicated.
 
-Для своих базовых толщин: измени width в line-widths.json, выполни
-python3 release.py и импортируй новый .osf с заменой файлов.
+Along a route, a thin purple line leaves the underlying blue/cyan infrastructure
+markings visible around it. Inspect at a close zoom. The route itself does not
+change colour per segment; infrastructure percentages and a segment list are absent.
 
-Для просмотра карты BRouter устанавливать не требуется.
-Новый переключатель 1.2 проверен правилами рендерера; на телефоне пока не проверен.
+The package contains the style and legend only, not a navigation profile.
+BRouter is optional for routing; see routing/README.md. A hard 20% detour limit is
+not implemented inside OsmAnd. Rendering uses OBF, BRouter uses separate RD5.
+
+Rollback: choose Standard, or import releases/CycloRoute-Personal-1.1.osf.
+The 1.1 rollback package keeps its historical Russian legend.
+English labels, the bookmark and Standard/Maximum width switching were checked
+on a Galaxy S23 with OsmAnd 5.4.11 on 5 November 2026.

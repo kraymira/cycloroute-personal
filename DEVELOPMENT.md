@@ -1,4 +1,21 @@
-# Сборка и проверка
+# Version 1.3: English legend and settings
+
+The native legend labels are stored in `source/CycloRoutePersonalLegend.obf`, not generated from the app language. `build.py` writes English sample names into `source/CycloRoutePersonalLegend.osm`; changing that XML alone does not update an existing binary OBF.
+
+To regenerate the binary map, run OsmAndMapCreator with Java 21:
+
+```sh
+java -Xmx1024m -cp "$MAPCREATOR/OsmAndMapCreator.jar:$MAPCREATOR/lib/*" \
+  net.osmand.MainUtilities generate-map source/CycloRoutePersonalLegend.osm
+```
+
+Copy the resulting `Cycloroutepersonallegend.obf` to `source/CycloRoutePersonalLegend.obf`, then run `python3 release.py`. Use **generate-map**, not a command that adds a routing index. The checked-in OBF lets ordinary package builds use only Python's standard library.
+
+The English width values are `Thicker` and `Maximum`; the empty value is displayed as `Standard`. Legacy rules retain the saved v1.2 values `Толще` and `Максимальная` with exactly the same multipliers. These legacy values are intentionally absent from the new menu. Unknown values fall back to the standard width. Geometry, facility tags, the palette, ordinary roads and the navigation line are unchanged.
+
+Tests check the package hashes, all 25 English binary-map labels, the favourite, rendering-rule preservation and both English and legacy width values. Run the Java checks using the commands below after setting `MAPCREATOR` to the unpacked tool directory. Copy the frozen parent into `dist/mvp` before loading that child style in the standalone tests.
+
+## Historical v1.2 development notes
 
 ```sh
 python3 release.py

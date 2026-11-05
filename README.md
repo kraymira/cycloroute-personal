@@ -1,62 +1,74 @@
 # CycloRoute Personal
 
-Велосипедный стиль OsmAnd на основе [CycloRoute](https://github.com/OsmAnd-Rendering/Cycling): заметные велопути, приглушённые автомобильные дороги и тонкая линия маршрута. **Версия 1.2** добавляет выбор толщины внутри OsmAnd. Предыдущая версия проверена на Galaxy S23 с OsmAnd **5.4.11**; проверка нового переключателя на телефоне пока не выполнена. [Отчёт проверок](VALIDATION.md).
+A cycling map style for **OsmAnd Android**, based on [CycloRoute](https://github.com/OsmAnd-Rendering/Cycling). It highlights bicycle infrastructure, uses muted colours for ordinary roads, and keeps the route line thin so the map remains visible around it.
 
-## Установить
+**Version 1.3** translates the offline legend, its bookmark and the bicycle line width control into English. It preserves the three width settings introduced in 1.2, including previously saved Russian setting values. Earlier map and routing behaviour was checked on a Galaxy S23 with OsmAnd **5.4.11**; the English legend, bookmark and width selector were checked on that phone on 5 November 2026. See [validation](VALIDATION.md).
 
-1. Скачай [CycloRoute-Personal.osf](CycloRoute-Personal.osf) и открой его через **OsmAnd**. Альтернатива: **Settings → Import from file**.
-2. Импортируй всё из пакета. Выбери свой велосипедный профиль, затем **Configure map → Map style → CycloRoutePersonalMVP**.
-3. Удерживай **+** или **−** на карте → **Map magnifier → 25%**. После этого выставь нужный масштаб кнопками карты — например, линейку **5 km**.
+## Install or update
 
-Легенда: **My Places → My Favourites → CycloRoute Personal → Легенда CycloRoute Personal**. Приблизь карту и прокручивай вниз.
+1. Download [CycloRoute-Personal.osf](CycloRoute-Personal.osf) and open it with **OsmAnd**, or use **Settings → Import from file**.
+2. Import all resources. When updating, replace the existing rendering styles and legend map. The original CycloRoute remains a separate style.
+3. In your cycling profile, select **Configure map → Map style → CycloRoutePersonalMVP**.
+4. For more map detail at the same physical extent, hold **+** or **−** and choose **Map magnifier → 25%**, then adjust the zoom normally. This increases detail across the whole map and can also increase clutter or rendering load. The OSF does not set it automatically.
 
-Пакет добавляет оформление и легенду. BRouter для просмотра карты не нужен. Настройка Map magnifier задаётся отдельно в выбранном профиле; при 25% подробнее становится вся карта. [Документация OsmAnd](https://osmand.net/docs/user/map/vector-maps/#map-magnifier).
+The main OSF adds two rendering files, an offline legend map and a favourites group. It does **not** install BRouter, import a navigation profile or change the routing engine. BRouter is not needed just to view the map. [OsmAnd documentation](https://osmand.net/docs/user/map/vector-maps/#map-magnifier).
 
-## Сделать линии толще — прямо в OsmAnd
+## Open the legend
 
-При выбранном **CycloRoutePersonalMVP** открой **Configure map → Толщина велолиний**. Если пункт сразу не виден, прокрути меню оформления вниз.
+**My Places → My Favourites → CycloRoute Personal → CycloRoute Personal Legend**.
 
-| Вариант | Толщина |
+Open the favourite on the map, zoom to approximately level 17–18 and scroll down through the labelled samples. The legend is a **separate offline demonstration map**, not real infrastructure and not a panel over your current map or route. It contains map data only, with no routing graph. Use the location button to return to your position; save a marker first if you want to return to a different previously viewed place.
+
+When upgrading from the Russian legend, an old favourite named **«Легенда CycloRoute Personal»** may remain. You can remove that old bookmark and use the English one. The map keeps the same filename, so choose replacement rather than keeping a second copy of the OBF.
+
+## See infrastructure along a planned or active route
+
+Select the intended **map profile** and `CycloRoutePersonalMVP` style as well as your routing profile. Choosing a routing mode in the route panel alone does not necessarily switch the map profile.
+
+The route itself is a **thin, single-colour purple line**. Bicycle infrastructure is identified by the blue or cyan map markings visible around it; ordinary roads keep their neutral styling. The route line does **not** change colour for each infrastructure type. Dashes requested in the rendering XML did not appear on the tested native route line, so the working design uses a thin solid line.
+
+This is a map-reading aid, **not a segment-by-segment infrastructure report**. It is easier to inspect at a close zoom; visibility can become ambiguous when zoomed out or where other markings overlap. Missing map tags do not prove there is no bicycle facility on the ground. The UI currently provides **no infrastructure percentage and no infrastructure segment list**. Map display uses OsmAnd OBF data; BRouter routing uses separate RD5 data, which may have a different update date.
+
+Optional bicycle routing: [BRouter profiles and limitations](routing/README.md). The preferred profile allows legal ordinary-road connections when the bicycle network is incomplete. A strict **20% detour limit is not enforced inside OsmAnd**; the two-pass reference adapter runs separately on a computer.
+
+## Change bicycle line width in OsmAnd
+
+With `CycloRoutePersonalMVP` selected, open **Configure map → Bicycle line width**. Scroll down if necessary.
+
+| Setting | Width |
 | --- | --- |
-| Текущая | ×1 — как в версии 1.1, по умолчанию |
-| Толще | ×1.5 |
-| Максимальная | ×2 |
+| Standard | ×1, the original 1.1 widths |
+| Thicker | ×1.5 |
+| Maximum | ×2 |
 
-Настройка предназначена для переключения без повторного импорта. Она относится только к велоинфраструктуре; обычные дороги, линия маршрута и красные штрихи запрета сохраняют прежнюю толщину. У существующей контрастной подложки ширина равна ширине цветной линии плюс 2. Образцы офлайн-легенды используют тот же стиль и выбранную толщину. Собственной панели легенды поверх карты нет.
+Changing this setting does not require another import. It affects bicycle infrastructure only; ordinary roads, the navigation line and red prohibition marks keep their existing widths. Existing casings remain two renderer units wider than the coloured line. The native offline legend uses the selected width too. Previously saved 1.2 values `Толще` and `Максимальная` retain their old multipliers; new selections use English values.
 
-Для показа большего числа велопутей издалека используй **Map magnifier 25%**: одна толщина не меняет подробность данных.
+For more facilities at overview zooms use **Map magnifier 25%**. Width changes alone cannot display geometry missing from that map detail level.
 
-### Изменить базовые толщины в исходниках
+## Colours
 
-Открой [line-widths.json](line-widths.json), увеличь нужные значения `width` на 1–2 и выполни:
+| Feature | Colour |
+| --- | --- |
+| Separated cycleway | `#174BCC` |
+| Painted cycle lane | `#6C91EF` |
+| Shared pedestrian / cycle path | `#4A9FD9` |
+| Bicycle street | `#7DB1D4` |
+| Shared traffic or bus lane | `#7DC8D4` |
+| `bicycle=no` | Red transverse marks |
+
+Shared pedestrian/cycle paths look the same with or without pedestrian separation. Bicycle streets may allow cars; painted and shared lanes do not imply physical separation from traffic. For infrastructure encoded as tags on a road, the colour can follow the road centreline and does not show the precise lateral position of the cycle lane.
+
+## Build and rollback
+
+Download the source using **Code → Download ZIP**. With Python 3:
 
 ```sh
 python3 release.py
+python3 tests/verify_package.py
 ```
 
-Получившийся `CycloRoute-Personal.osf` снова импортируй в OsmAnd с заменой одноимённых файлов. Низкие `min`/`max` относятся к отдалённой карте; высокие — к приближённой. Три режима умножают эти базовые значения, обводка увеличивается автоматически.
+The normal package build uses the checked-in legend OBF and needs Python's standard library only. If you edit legend names or geometry, first regenerate `source/CycloRoutePersonalLegend.obf` with OsmAndMapCreator as described in [DEVELOPMENT.md](DEVELOPMENT.md); rebuilding only the XML does not translate an old binary map.
 
-## Вернуться к прошлой версии
+Edit `line-widths.json` to change base widths, run the build and reimport the OSF. To restore the original width choose **Standard**. For the complete previous 1.1 appearance import [CycloRoute-Personal-1.1.osf](releases/CycloRoute-Personal-1.1.osf) and replace matching resources; that historical package retains its Russian legend.
 
-Чтобы вернуть только прежнюю толщину, выбери **Текущая**. Чтобы полностью вернуть оформление 1.1, импортируй [CycloRoute-Personal-1.1.osf](releases/CycloRoute-Personal-1.1.osf) с заменой одноимённых файлов. Оригинальный CycloRoute также остаётся отдельным стилем.
-
-## Цвета
-
-| Объект | Цвет |
-| --- | --- |
-| Обособленная велодорожка | `#174BCC` |
-| Велополоса на автомобильной дороге | `#6C91EF` |
-| Велопешеходный путь | `#4A9FD9` |
-| Велосипедная улица | `#7DB1D4` |
-| Общая полоса с машинами или автобусами | `#7DC8D4` |
-| `bicycle=no` | Красные поперечные штрихи |
-
-Разделённые и неразделённые велопешеходные пути обозначаются одинаково. Цвет велоинфраструктуры, записанной тегами автомобильной дороги, может идти по оси этой дороги и не показывает точное положение полосы. Видимость и полнота зависят от данных скачанной карты.
-
-## Исходники
-
-Скачай весь проект: **Code → Download ZIP**. Для сборки стиля нужен только Python 3, без дополнительных пакетов. `build.py` создаёт основное оформление, `build_mvp.py` — текущую версию с тонкой линией маршрута, `release.py` собирает установочный файл. Зафиксированные исходники и лицензии — в `source/`; проверки — в `tests/`. Подробности: [DEVELOPMENT.md](DEVELOPMENT.md).
-
-В `routing/` отдельно сохранены экспериментальные профили BRouter. Для простого просмотра карты они не нужны; их возможности и ограничения описаны [там же](routing/README.md).
-
-Лицензия стилей и проекта: **GPL-3.0**. Исходные проекты и указания авторства: [NOTICE.md](NOTICE.md).
+Pinned upstream sources and licences are in `source/`; checks are in `tests/`. See [DEVELOPMENT.md](DEVELOPMENT.md), [VALIDATION.md](VALIDATION.md) and [NOTICE.md](NOTICE.md). Project and rendering styles: **GPL-3.0**.

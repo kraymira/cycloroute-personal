@@ -40,9 +40,9 @@ public class VerifyWidthModes extends VerifyStyle {
   }
   var s=load("CycloRoutePersonalMVP");
   var property=s.PROPS.get("cyclorouteBikeWidth");
-  equal(property.getName(),"Толщина велолиний","setting title");
-  equal(property.getDefaultValueDescription(),"Текущая","default title");
-  equal(Arrays.asList(property.getPossibleValues()),List.of("Толще","Максимальная"),"two nondefault options");
+  equal(property.getName(),"Bicycle line width","setting title");
+  equal(property.getDefaultValueDescription(),"Standard","default title");
+  equal(Arrays.asList(property.getPossibleValues()),List.of("Thicker","Maximum"),"two nondefault options");
   String[][] facilities={
    {"highway","cycleway","strokeWidth_5","strokeWidth_4","#174BCC"},
    {"highway","path","strokeWidth_5","strokeWidth_4","#4A9FD9","bicycle=designated","foot=designated"},
@@ -61,7 +61,7 @@ public class VerifyWidthModes extends VerifyStyle {
    {"cycleway","opposite_track","strokeWidth","strokeWidth_0","#174BCC"},
    {"cycleway","opposite_lane","strokeWidth","strokeWidth_0","#6C91EF"}
   };
-  String[] modes={"","Толще","Максимальная"};float[] factors={1,1.5f,2};
+  String[] modes={"","Thicker","Maximum","Толще","Максимальная"};float[] factors={1,1.5f,2,1.5f,2};
   for(boolean night:new boolean[]{false,true})for(int z=10;z<=19;z++){
    float base=Float.NaN;
    for(var row:rows){var o=row.getAsJsonObject();if(z>=o.get("min").getAsInt()&&(!o.has("max")||z<=o.get("max").getAsInt()))base=o.get("width").getAsFloat();}

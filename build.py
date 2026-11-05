@@ -11,7 +11,9 @@ RENDER.mkdir(parents=True, exist_ok=True)
 BLUE, LANE, MIXED, STREET, SHARED = '#174BCC','#6C91EF','#4A9FD9','#7DB1D4','#7DC8D4'
 PALETTE = {'cycleway':BLUE,'lane':LANE,'mixed':MIXED,'street':STREET,'shared':SHARED}
 WIDTH_PROPERTY = 'cyclorouteBikeWidth'
-WIDTH_MODES = (('Толще', 1.5), ('Максимальная', 2))
+WIDTH_MODES = (('Thicker', 1.5), ('Maximum', 2))
+# Keep saved v1.2 preference values working without showing Russian choices.
+LEGACY_WIDTH_MODES = (('Толще', 1.5), ('Максимальная', 2))
 
 def load(name):
     return ET.parse(SRC/name, parser=ET.XMLParser(target=ET.TreeBuilder(insert_comments=True))).getroot()
@@ -51,10 +53,10 @@ cyc.set('name','CycloRoute Personal');cyc.set('depends','CycloRoutePersonalBase'
 # Define in the parent: bicycle-street rules are parsed there as well.
 # OsmAnd adds the empty/default choice itself, giving exactly three choices.
 base.insert(0, ET.Element('renderingProperty', {
-    'attr': WIDTH_PROPERTY, 'name': 'Толщина велолиний', 'type': 'string',
-    'description': 'Текущая — ×1; Толще — ×1.5; Максимальная — ×2. Только велолинии.',
+    'attr': WIDTH_PROPERTY, 'name': 'Bicycle line width', 'type': 'string',
+    'description': 'Standard: x1; Thicker: x1.5; Maximum: x2. Bicycle infrastructure only.',
     'possibleValues': ','.join(name for name, _ in WIDTH_MODES),
-    'defaultValueDescription': 'Текущая',
+    'defaultValueDescription': 'Standard',
 }))
 
 # Freeze the parent so future changes to the built-in default cannot reintroduce
@@ -120,7 +122,7 @@ def bike_widths(parent, attr='strokeWidth', extra=0, casing=None):
         if casing:a[casing]=str(w+extra+2)
         if hi is not None:a['maxzoom']=str(hi)
         rule = ET.SubElement(parent,'apply_if',a)
-        for name, multiplier in WIDTH_MODES:
+        for name, multiplier in WIDTH_MODES + LEGACY_WIDTH_MODES:
             scaled = (w + extra) * multiplier
             override = {WIDTH_PROPERTY: name, attr: f'{scaled:g}'}
             if casing: override[casing] = f'{scaled + 2:g}'
@@ -211,16 +213,16 @@ def way(points,tags):
     for n in points:ET.SubElement(e,'nd',ref=n)
     for k,v in tags.items():ET.SubElement(e,'tag',k=k,v=v)
 
-samples=[('Обособленная велодорожка',{'highway':'cycleway'}),
- ('Велополоса — разметка',{'highway':'residential','cycleway':'lane'}),
- ('Велопешеходный путь',{'highway':'path','bicycle':'designated','foot':'designated'}),
- ('Улица с велорежимом',{'highway':'residential','bicycle_road':'yes'}),
- ('Общая полоса с машинами',{'highway':'residential','cycleway':'shared_lane'}),
- ('Полоса с автобусами',{'highway':'residential','cycleway':'share_busway'}),
- ('Обособленная вдоль дороги',{'highway':'residential','cycleway':'track'}),
- ('Езда на велосипеде запрещена',{'highway':'residential','bicycle':'no'})]
-samples += [(label,{'highway':v}) for v,label in [('motorway','Автомагистраль'),('trunk','Крупная магистраль'),('primary','Главная дорога'),('secondary','Второстепенная дорога'),('tertiary','Местная связующая дорога'),('residential','Жилая улица'),('service','Служебный проезд'),('track','Хозяйственная дорога'),('path','Обычная тропа'),('footway','Пешеходная дорожка'),('bridleway','Конная дорожка'),('steps','Лестница')]]
-samples += [('Мост',{'highway':'cycleway','bridge':'yes','layer':'1'}),('Тоннель',{'highway':'cycleway','tunnel':'yes','layer':'-1'}),('Дорожка с велосипедами и пешеходами',{'highway':'cycleway','foot':'designated'}),('Велополоса справа',{'highway':'residential','cycleway:right':'lane'}),('Велодорожка справа',{'highway':'residential','cycleway:right':'track'})]
+samples=[('Separated cycleway',{'highway':'cycleway'}),
+ ('Painted cycle lane',{'highway':'residential','cycleway':'lane'}),
+ ('Shared pedestrian / cycle path',{'highway':'path','bicycle':'designated','foot':'designated'}),
+ ('Bicycle street',{'highway':'residential','bicycle_road':'yes'}),
+ ('Shared lane with traffic',{'highway':'residential','cycleway':'shared_lane'}),
+ ('Shared bus lane',{'highway':'residential','cycleway':'share_busway'}),
+ ('Roadside separated cycleway',{'highway':'residential','cycleway':'track'}),
+ ('Cycling prohibited',{'highway':'residential','bicycle':'no'})]
+samples += [(label,{'highway':v}) for v,label in [('motorway','Motorway'),('trunk','Trunk road'),('primary','Primary road'),('secondary','Secondary road'),('tertiary','Tertiary road'),('residential','Residential street'),('service','Service road'),('track','Track'),('path','Path'),('footway','Footway'),('bridleway','Bridleway'),('steps','Steps')]]
+samples += [('Bridge',{'highway':'cycleway','bridge':'yes','layer':'1'}),('Tunnel',{'highway':'cycleway','tunnel':'yes','layer':'-1'}),('Shared pedestrian / cycle path',{'highway':'cycleway','foot':'designated'}),('Cycle lane on the right',{'highway':'residential','cycleway:right':'lane'}),('Separated cycleway on the right',{'highway':'residential','cycleway:right':'track'})]
 for i,(label,tags) in enumerate(samples):
     lat=45.7388-i*.00075
     way([node(lat,36.55),node(lat,36.553)],dict(tags,name=label))
@@ -228,9 +230,9 @@ write_xml(osm,SRC/'CycloRoutePersonalLegend.osm')
 ns='http://www.topografix.com/GPX/1/1'
 gpx=ET.Element('gpx',{'version':'1.1','creator':'CycloRoute Personal','xmlns':ns})
 wp=ET.SubElement(gpx,'wpt',lat='45.7388',lon='36.5515')
-ET.SubElement(wp,'name').text='Легенда CycloRoute Personal'
+ET.SubElement(wp,'name').text='CycloRoute Personal Legend'
 ET.SubElement(wp,'type').text='CycloRoute Personal'
-ET.SubElement(wp,'desc').text='Демонстрационная карта. Приблизьте до масштаба 17–18 и прокрутите вниз. Возврат: кнопка местоположения. Это не реальная дорожная сеть.'
+ET.SubElement(wp,'desc').text='Offline demonstration map, not real infrastructure. Zoom to level 17-18 and scroll down for samples. Use the location button to return to your position.'
 write_xml(gpx,DIST/'favourites.gpx')
 
 # Catalogue every explicit main tag/value selector in the exact shipped style
