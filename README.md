@@ -2,6 +2,8 @@
 
 A cycling map style for **OsmAnd Android**, based on [CycloRoute](https://github.com/OsmAnd-Rendering/Cycling). It highlights bicycle infrastructure, uses muted colours for ordinary roads, and keeps the route line thin so the map remains visible around it.
 
+Planned work and optional ideas: **[To-do list](TODO.md)**.
+
 **Version 1.3** translates the offline legend, its bookmark and the bicycle line width control into English. It preserves the three width settings introduced in 1.2, including previously saved Russian setting values. Earlier map and routing behaviour was checked on a Galaxy S23 with OsmAnd **5.4.11**; the English legend, bookmark and width selector were checked on that phone on 5 November 2026. See [validation](VALIDATION.md).
 
 ## Install or update
@@ -29,7 +31,7 @@ The route itself is a **thin, single-colour purple line**. Bicycle infrastructur
 
 This is a map-reading aid, **not a segment-by-segment infrastructure report**. It is easier to inspect at a close zoom; visibility can become ambiguous when zoomed out or where other markings overlap. Missing map tags do not prove there is no bicycle facility on the ground. The UI currently provides **no infrastructure percentage and no infrastructure segment list**. Map display uses OsmAnd OBF data; BRouter routing uses separate RD5 data, which may have a different update date.
 
-Optional bicycle routing: [BRouter profiles and limitations](routing/README.md). The preferred profile allows legal ordinary-road connections when the bicycle network is incomplete. A strict **20% detour limit is not enforced inside OsmAnd**; the two-pass reference adapter runs separately on a computer.
+Optional bicycle routing: [BRouter profiles and limitations](routing/README.md). The preferred profile favours bicycle infrastructure and allows legal ordinary-road connections when the bicycle network is incomplete.
 
 ## Change bicycle line width in OsmAnd
 
