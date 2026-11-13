@@ -1,0 +1,561 @@
+diff --git a/OsmAnd-java/src/main/java/net/osmand/router/BicycleRoute.java b/OsmAnd-java/src/main/java/net/osmand/router/BicycleRoute.java
+new file mode 100644
+index 0000000..0196763
+--- /dev/null
++++ b/OsmAnd-java/src/main/java/net/osmand/router/BicycleRoute.java
+@@ -0,0 +1,206 @@
++package net.osmand.router;
++
++import net.osmand.Location;
++
++import org.json.JSONArray;
++import org.json.JSONException;
++import org.json.JSONObject;
++
++import java.util.ArrayList;
++import java.util.Collections;
++import java.util.HashMap;
++import java.util.IdentityHashMap;
++import java.util.List;
++import java.util.Map;
++
++/** Bicycle infrastructure and guidance from one BRouter GeoJSON response. */
++public final class BicycleRoute {
++	public enum Facility { MAPPED, ORDINARY, UNKNOWN }
++
++	public record Point(double latitude, double longitude, double elevation) {}
++	public record Hint(int index, String turn, int angle, int secondsToNext) {}
++
++	private final List<Point> points = new ArrayList<>();
++	private final List<Hint> hints = new ArrayList<>();
++	private final List<Facility> incoming = new ArrayList<>();
++
++	public BicycleRoute(String response) throws JSONException {
++		JSONObject feature = new JSONObject(response).getJSONArray("features").getJSONObject(0);
++		JSONArray coordinates = feature.getJSONObject("geometry").getJSONArray("coordinates");
++		for (int i = 0; i < coordinates.length(); i++) {
++			JSONArray coordinate = coordinates.getJSONArray(i);
++			points.add(new Point(coordinate.getDouble(1), coordinate.getDouble(0), coordinate.optDouble(2)));
++			incoming.add(Facility.UNKNOWN);
++		}
++		if (points.size() < 2) {
++			throw new JSONException("BRouter route has fewer than two points");
++		}
++		JSONObject properties = feature.getJSONObject("properties");
++		readFacilities(properties.optJSONArray("messages"));
++		readHints(properties);
++	}
++
++	public List<Point> getPoints() {
++		return points;
++	}
++
++	public List<Hint> getHints() {
++		return hints;
++	}
++
++	private void readFacilities(JSONArray rows) throws JSONException {
++		if (rows == null || rows.length() < 2) {
++			return;
++		}
++		Map<String, Integer> columns = new HashMap<>();
++		JSONArray header = rows.getJSONArray(0);
++		for (int i = 0; i < header.length(); i++) {
++			columns.put(header.getString(i), i);
++		}
++		Integer lon = columns.get("Longitude");
++		Integer lat = columns.get("Latitude");
++		Integer tags = columns.get("WayTags");
++		if (lon == null || lat == null || tags == null) {
++			return;
++		}
++		int start = 0;
++		for (int i = 1; i < rows.length(); i++) {
++			JSONArray row = rows.getJSONArray(i);
++			int endLatitude = row.getInt(lat);
++			int endLongitude = row.getInt(lon);
++			int end = start + 1;
++			while (end < points.size()) {
++				Point point = points.get(end);
++				if (Math.round(point.latitude * 1e6) == endLatitude
++						&& Math.round(point.longitude * 1e6) == endLongitude) {
++					break;
++				}
++				end++;
++			}
++			if (end >= points.size()) {
++				// A missing boundary makes the remaining alignment ambiguous.
++				break;
++			}
++			Facility facility = classify(row.getString(tags));
++			for (int j = start + 1; j <= end; j++) {
++				incoming.set(j, facility);
++			}
++			start = end;
++		}
++	}
++
++	private Facility classify(String rawTags) {
++		Map<String, String> tags = new HashMap<>();
++		for (String entry : rawTags.split(" ")) {
++			int separator = entry.indexOf('=');
++			if (separator > 0) {
++				tags.put(entry.substring(0, separator), entry.substring(separator + 1));
++			}
++		}
++		String highway = tags.get("highway");
++		if ("cycleway".equals(highway)
++				|| (("path".equals(highway) || "footway".equals(highway)) && "designated".equals(tags.get("bicycle")))
++				|| isBicycleStreet(tags.get("bicycle_road")) || isBicycleStreet(tags.get("cyclestreet"))) {
++			return Facility.MAPPED;
++		}
++		boolean reverse = "yes".equals(tags.get("reversedirection"));
++		boolean explicitlyOrdinary = false;
++		for (String side : new String[] {"", ":both", ":left", ":right"}) {
++			String type = tags.get("cycleway" + side);
++			String direction = tags.get("cycleway" + side + ":oneway");
++			boolean accessible = switch (direction == null ? "" : direction) {
++				case "no" -> true;
++				case "yes", "1" -> !reverse;
++				case "-1" -> reverse;
++				default -> side.isEmpty() || ":both".equals(side) || (reverse == ":left".equals(side));
++			};
++			if (accessible && ("track".equals(type) || "lane".equals(type))) {
++				return Facility.MAPPED;
++			}
++			explicitlyOrdinary |= accessible && ("no".equals(type) || "shared_lane".equals(type)
++					|| "share_busway".equals(type));
++		}
++		return explicitlyOrdinary ? Facility.ORDINARY : Facility.UNKNOWN;
++	}
++
++	private boolean isBicycleStreet(String value) {
++		return "yes".equals(value) || "designated".equals(value);
++	}
++
++	private void readHints(JSONObject properties) throws JSONException {
++		JSONArray voiceHints = properties.optJSONArray("voicehints");
++		JSONArray times = properties.optJSONArray("times");
++		int last = points.size() - 1;
++		List<Integer> indexes = new ArrayList<>();
++		List<String> turns = new ArrayList<>();
++		List<Integer> angles = new ArrayList<>();
++		indexes.add(0);
++		turns.add("C");
++		angles.add(0);
++		if (voiceHints != null) {
++			for (int i = 0; i < voiceHints.length(); i++) {
++				JSONArray hint = voiceHints.getJSONArray(i);
++				int index = hint.getInt(0);
++				String turn = switch (hint.getInt(1)) {
++					case 2 -> "TL";
++					case 3 -> "TSLL";
++					case 4 -> "TSHL";
++					case 5 -> "TR";
++					case 6 -> "TSLR";
++					case 7 -> "TSHR";
++					case 8, 17 -> "KL";
++					case 9, 18 -> "KR";
++					case 10, 15 -> "TU";
++					case 11 -> "TRU";
++					case 12 -> "OFFR";
++					case 13 -> "RNDB" + Math.abs(hint.getInt(2));
++					case 14 -> "RNLB" + Math.abs(hint.getInt(2));
++					default -> "C";
++				};
++				if (index > indexes.get(indexes.size() - 1) && index < last) {
++					indexes.add(index);
++					turns.add(turn);
++					angles.add(hint.getInt(4));
++				}
++			}
++		}
++		indexes.add(last);
++		turns.add("C");
++		angles.add(0);
++		for (int i = 0; i < indexes.size(); i++) {
++			int index = indexes.get(i);
++			int seconds = times != null && i + 1 < indexes.size()
++					? (int) (Math.round(times.optDouble(indexes.get(i + 1), 0)) - Math.round(times.optDouble(index, 0)))
++					: 0;
++			hints.add(new Hint(index, turns.get(i), angles.get(i), Math.max(0, seconds)));
++		}
++	}
++
++	public Coverage coverage(List<Location> source, List<Location> route) {
++		Map<Location, Facility> byEndpoint = new IdentityHashMap<>();
++		for (int i = 1; i < source.size(); i++) {
++			byEndpoint.put(source.get(i), incoming.get(i));
++		}
++		List<Facility> facilities = new ArrayList<>();
++		float total = 0;
++		float mapped = 0;
++		float unknown = 0;
++		for (int i = 1; i < route.size(); i++) {
++			Facility facility = byEndpoint.get(route.get(i));
++			if (facility == null) {
++				facility = Facility.UNKNOWN;
++			}
++			facilities.add(facility);
++			float distance = route.get(i - 1).distanceTo(route.get(i));
++			total += distance;
++			if (facility == Facility.MAPPED) {
++				mapped += distance;
++			} else if (facility == Facility.UNKNOWN) {
++				unknown += distance;
++			}
++		}
++		return new Coverage(Collections.unmodifiableList(facilities), mapped, unknown, total);
++	}
++
++	public record Coverage(List<Facility> facilities, float mapped, float unknown, float total) {}
++}
+diff --git a/OsmAnd/res/layout/route_info_statistic.xml b/OsmAnd/res/layout/route_info_statistic.xml
+index def1a91..ae483e7 100644
+--- a/OsmAnd/res/layout/route_info_statistic.xml
++++ b/OsmAnd/res/layout/route_info_statistic.xml
+@@ -36,6 +36,14 @@
+ 				android:layout_height="wrap_content"
+ 				tools:text="34,2 km  •  39 min (17:47)" />
+ 
++			<net.osmand.plus.widgets.TextViewEx
++				android:id="@+id/bicycle_coverage"
++				style="@style/TitleStyle"
++				android:layout_width="match_parent"
++				android:layout_height="wrap_content"
++				android:textSize="16sp"
++				android:visibility="gone" />
++
+ 			<LinearLayout
+ 				android:id="@+id/secondRow"
+ 				android:layout_width="match_parent"
+diff --git a/OsmAnd/res/values/strings.xml b/OsmAnd/res/values/strings.xml
+index ab01373..1f6ea2c 100644
+--- a/OsmAnd/res/values/strings.xml
++++ b/OsmAnd/res/values/strings.xml
+@@ -11,6 +11,8 @@
+ 	Strings for OsmAnd core
+ 	Thx - Hardy
+ -->
++	<string name="bicycle_route_coverage">%1$s on mapped bikeways · %2$s</string>
++	<string name="bicycle_route_coverage_unknown">%1$s with unknown infrastructure</string>
+ 	<string name="visualization">Visualization</string>
+ 	<string name="terrain_shadows">Terrain shadows</string>
+ 	<string name="terrain_shadows_description">Real-time dynamic shading for 3D terrain. Highlights landscape geometry with minimal performance impact.</string>
+diff --git a/OsmAnd/src/net/osmand/plus/routepreparationmenu/cards/SimpleRouteCard.java b/OsmAnd/src/net/osmand/plus/routepreparationmenu/cards/SimpleRouteCard.java
+index 837a6b2..4e7ca4c 100644
+--- a/OsmAnd/src/net/osmand/plus/routepreparationmenu/cards/SimpleRouteCard.java
++++ b/OsmAnd/src/net/osmand/plus/routepreparationmenu/cards/SimpleRouteCard.java
+@@ -80,6 +80,10 @@ public class SimpleRouteCard extends MapBaseCard {
+ 	private void setupInfoRows() {
+ 		setupFirstRow();
+ 		setupSecondRow();
++		TextView bicycleCoverage = view.findViewById(R.id.bicycle_coverage);
++		String text = routingHelper.getRoute().getBicycleCoverageText(app, true);
++		bicycleCoverage.setText(text);
++		AndroidUiHelper.updateVisibility(bicycleCoverage, text != null);
+ 	}
+ 
+ 	private void setupSecondRow() {
+diff --git a/OsmAnd/src/net/osmand/plus/routing/RouteCalculationResult.java b/OsmAnd/src/net/osmand/plus/routing/RouteCalculationResult.java
+index 8b574d1..ab1adcd 100644
+--- a/OsmAnd/src/net/osmand/plus/routing/RouteCalculationResult.java
++++ b/OsmAnd/src/net/osmand/plus/routing/RouteCalculationResult.java
+@@ -18,6 +18,8 @@ import net.osmand.data.QuadRect;
+ import net.osmand.plus.OsmandApplication;
+ import net.osmand.plus.R;
+ import net.osmand.plus.settings.backend.ApplicationMode;
++import net.osmand.plus.utils.OsmAndFormatter;
++import net.osmand.router.BicycleRoute;
+ import net.osmand.router.ExitInfo;
+ import net.osmand.router.MissingMapsCalculationResult;
+ import net.osmand.router.RoutePlannerFrontEnd;
+@@ -30,6 +32,7 @@ import net.osmand.util.MapUtils;
+ 
+ import org.apache.commons.logging.Log;
+ 
++import java.text.NumberFormat;
+ import java.util.ArrayList;
+ import java.util.Arrays;
+ import java.util.Collections;
+@@ -81,6 +84,29 @@ public class RouteCalculationResult {
+ 	protected Location currentStraightAnglePoint;
+ 
+ 
++	private final BicycleRoute.Coverage bicycleCoverage;
++
++	@Nullable
++	public String getBicycleCoverageText(@NonNull OsmandApplication app, boolean includeUnknown) {
++		BicycleRoute.Coverage coverage = bicycleCoverage;
++		if (coverage == null || coverage.total() <= 0) {
++			return null;
++		}
++		String percentage = NumberFormat.getPercentInstance().format(coverage.mapped() / coverage.total());
++		String text = app.getString(R.string.bicycle_route_coverage,
++				OsmAndFormatter.getFormattedDistance(coverage.mapped(), app), percentage);
++		if (includeUnknown && coverage.unknown() > 0) {
++			text += "\n" + app.getString(R.string.bicycle_route_coverage_unknown,
++					OsmAndFormatter.getFormattedDistance(coverage.unknown(), app));
++		}
++		return text;
++	}
++
++	@Nullable
++	public BicycleRoute.Coverage getBicycleCoverage() {
++		return bicycleCoverage;
++	}
++
+ 	public RouteCalculationResult(String errorMessage) {
+ 		this.errorMessage = errorMessage;
+ 		this.routingTime = 0;
+@@ -98,10 +124,17 @@ public class RouteCalculationResult {
+ 		this.routeRecalcDistance = 0;
+ 		this.routeVisibleAngle = 0;
+ 		this.initialCalculation = false;
++		this.bicycleCoverage = null;
+ 	}
+ 
+ 	public RouteCalculationResult(List<Location> list, List<RouteDirectionInfo> directions,
+ 	                              RouteCalculationParams params, List<LocationPoint> waypoints, boolean addMissingTurns) {
++		this(list, directions, params, waypoints, addMissingTurns, null);
++	}
++
++	RouteCalculationResult(List<Location> list, List<RouteDirectionInfo> directions,
++	                       RouteCalculationParams params, List<LocationPoint> waypoints,
++	                       boolean addMissingTurns, @Nullable BicycleRoute bicycleRoute) {
+ 		this.routingTime = 0;
+ 		this.loadedTiles = 0;
+ 		this.calculateTime = 0;
+@@ -125,6 +158,7 @@ public class RouteCalculationResult {
+ 		}
+ 		this.appMode = params.mode;
+ 		this.locations = Collections.unmodifiableList(locations);
++		this.bicycleCoverage = bicycleRoute == null ? null : bicycleRoute.coverage(list, locations);
+ 		this.segments = new ArrayList<>();
+ 		this.listDistance = new int[locations.size()];
+ 		updateListDistanceTime(this.listDistance, this.locations);
+@@ -181,6 +215,7 @@ public class RouteCalculationResult {
+ 			introduceFirstPointAndLastPoint(locations, computeDirections, segments, start, end, ctx);
+ 		}
+ 		this.locations = Collections.unmodifiableList(locations);
++		this.bicycleCoverage = null;
+ 		this.segments = Collections.unmodifiableList(segments);
+ 		this.listDistance = new int[locations.size()];
+ 		calculateIntermediateIndexes(ctx, this.locations, intermediates, computeDirections, this.intermediatePoints);
+diff --git a/OsmAnd/src/net/osmand/plus/routing/RouteProvider.java b/OsmAnd/src/net/osmand/plus/routing/RouteProvider.java
+index a816d24..0ad92b4 100644
+--- a/OsmAnd/src/net/osmand/plus/routing/RouteProvider.java
++++ b/OsmAnd/src/net/osmand/plus/routing/RouteProvider.java
+@@ -15,6 +15,7 @@ import net.osmand.plus.shared.SharedUtil;
+ import net.osmand.binary.BinaryMapIndexReader;
+ import net.osmand.data.LatLon;
+ import net.osmand.gpx.GPXFile;
++import net.osmand.gpx.GPXUtilities;
+ import net.osmand.plus.OsmandApplication;
+ import net.osmand.plus.R;
+ import net.osmand.plus.avoidroads.AvoidRoadsHelper;
+@@ -837,23 +838,29 @@ public class RouteProvider {
+ 			}
+ 		}
+ 		try {
++			if ("cycleways-preferred".equals(brouterParams.getString("profile"))) {
++				Bundle taggedParams = new Bundle(brouterParams);
++				taggedParams.putString("trackFormat", "json");
++				try {
++					String response = brouterService.getTrackFromParams(taggedParams);
++					if (response != null && (response.startsWith("{") || response.startsWith("ejY0"))) {
++						return buildBicycleRoute(Algorithms.readFromInputStream(openBRouterResponse(response)).toString(), params);
++					}
++				} catch (Exception e) {
++					log.warn("Could not load BRouter bicycle infrastructure, retrying with GPX", e);
++				}
++			}
+ 			String gpxMessage = brouterService.getTrackFromParams(brouterParams);
+ 			if (gpxMessage == null) {
+-				gpxMessage = "no result from brouter";
++				return new RouteCalculationResult("no result from brouter");
+ 			}
+-			boolean isZ64Encoded = gpxMessage.startsWith("ejY0"); // base-64 version of "z64"
+-			if (!(isZ64Encoded || gpxMessage.startsWith("<"))) {
++			if (!(gpxMessage.startsWith("ejY0") || gpxMessage.startsWith("<"))) {
+ 				return new RouteCalculationResult(gpxMessage);
+ 			}
+-			InputStream gpxStream;
+-			if (isZ64Encoded) {
+-				ByteArrayInputStream bais = new ByteArrayInputStream(Base64.decode(gpxMessage, Base64.DEFAULT));
+-				bais.read(new byte[3]); // skip prefix
+-				gpxStream = new GZIPInputStream(bais);
+-			} else {
+-				gpxStream = new ByteArrayInputStream(gpxMessage.getBytes(StandardCharsets.UTF_8));
++			GpxFile gpxFile;
++			try (InputStream gpxStream = openBRouterResponse(gpxMessage)) {
++				gpxFile = SharedUtil.loadGpxFile(gpxStream);
+ 			}
+-			GpxFile gpxFile = SharedUtil.loadGpxFile(gpxStream);
+ 			infos = parseOsmAndGPXRoute(res, gpxFile, segmentEndpoints, true, params.leftSide, params.mode.getDefaultSpeed(), -1);
+ 			if (infos != null) {
+ 				addMissingTurns = false;
+@@ -864,6 +871,46 @@ public class RouteProvider {
+ 		return new RouteCalculationResult(res, infos, params, null, addMissingTurns);
+ 	}
+ 
++	private InputStream openBRouterResponse(String response) throws IOException {
++		if (response.startsWith("ejY0")) {
++			byte[] compressed = Base64.decode(response, Base64.DEFAULT);
++			return new GZIPInputStream(new ByteArrayInputStream(compressed, 3, compressed.length - 3));
++		}
++		return new ByteArrayInputStream(response.getBytes(StandardCharsets.UTF_8));
++	}
++
++	private RouteCalculationResult buildBicycleRoute(String response, RouteCalculationParams params) throws JSONException {
++		BicycleRoute bicycleRoute = new BicycleRoute(response);
++		GPXFile gpx = new GPXFile("OsmAndRouter");
++		TrkSegment segment = new TrkSegment();
++		GPXUtilities.Track track = new GPXUtilities.Track();
++		track.segments.add(segment);
++		gpx.tracks.add(track);
++		for (BicycleRoute.Point point : bicycleRoute.getPoints()) {
++			WptPt waypoint = new WptPt();
++			waypoint.lat = point.latitude();
++			waypoint.lon = point.longitude();
++			waypoint.ele = point.elevation();
++			segment.points.add(waypoint);
++		}
++		Route route = new Route();
++		gpx.routes.add(route);
++		for (BicycleRoute.Hint hint : bicycleRoute.getHints()) {
++			WptPt turn = new WptPt(segment.points.get(hint.index()));
++			turn.desc = RouteCalculationResult.toString(TurnType.fromString(hint.turn(), params.leftSide), params.ctx, false);
++			Map<String, String> extensions = turn.getExtensionsToWrite();
++			extensions.put("offset", Integer.toString(hint.index()));
++			extensions.put("turn", hint.turn());
++			extensions.put("turn-angle", Integer.toString(hint.angle()));
++			extensions.put("time", Integer.toString(hint.secondsToNext()));
++			route.points.add(turn);
++		}
++		List<Location> locations = new ArrayList<>();
++		List<RouteDirectionInfo> directions = parseOsmAndGPXRoute(locations, SharedUtil.kGpxFile(gpx),
++				new ArrayList<>(), true, params.leftSide, params.mode.getDefaultSpeed(), -1);
++		return new RouteCalculationResult(locations, directions, params, null, directions == null, bicycleRoute);
++	}
++
+ 	@NonNull
+ 	private Bundle getBRouterParams(@NonNull RouteCalculationParams params) {
+ 		int numpoints = 2 + (params.intermediates != null ? params.intermediates.size() : 0);
+diff --git a/OsmAnd/src/net/osmand/plus/views/layers/RouteLayer.java b/OsmAnd/src/net/osmand/plus/views/layers/RouteLayer.java
+index 096f908..0e2464b 100644
+--- a/OsmAnd/src/net/osmand/plus/views/layers/RouteLayer.java
++++ b/OsmAnd/src/net/osmand/plus/views/layers/RouteLayer.java
+@@ -496,8 +496,14 @@ public class RouteLayer extends BaseRouteLayer implements IContextMenuProvider {
+ 
+ 			ColoringType actualColoringType = isColoringAvailable(routeColoringType, routeInfoAttribute) ?
+ 					routeColoringType : ColoringType.DEFAULT;
++			if (route.getBicycleCoverage() != null) {
++				actualColoringType = ColoringType.ATTRIBUTE;
++			}
+ 			int routeLineColor = getRouteLineColor();
+ 			float routeLineWidth = getRouteLineWidth(tileBox);
++			if (route.getBicycleCoverage() != null) {
++				routeLineWidth = Math.max(routeLineWidth, 5f * tileBox.getDensity());
++			}
+ 			boolean shouldShowDirectionArrows = shouldShowDirectionArrows();
+ 			routeGeometry.setRouteStyleParams(routeLineColor, routeLineWidth, shouldShowDirectionArrows,
+ 					getDirectionArrowsColor(), actualColoringType, routeInfoAttribute, routeGradientPalette);
+diff --git a/OsmAnd/src/net/osmand/plus/views/layers/geometry/RouteGeometryWay.java b/OsmAnd/src/net/osmand/plus/views/layers/geometry/RouteGeometryWay.java
+index 71260cb..e66c139 100644
+--- a/OsmAnd/src/net/osmand/plus/views/layers/geometry/RouteGeometryWay.java
++++ b/OsmAnd/src/net/osmand/plus/views/layers/geometry/RouteGeometryWay.java
+@@ -11,6 +11,7 @@ import androidx.annotation.NonNull;
+ import androidx.annotation.Nullable;
+ 
+ import net.osmand.Location;
++import net.osmand.router.BicycleRoute;
+ import net.osmand.core.android.MapRendererView;
+ import net.osmand.core.jni.PointI;
+ import net.osmand.core.jni.QListVectorLine;
+@@ -35,6 +36,7 @@ import java.util.LinkedHashMap;
+ import java.util.List;
+ import java.util.Map;
+ import java.util.Map.Entry;
++import java.util.TreeMap;
+ 
+ import gnu.trove.list.array.TByteArrayList;
+ import gnu.trove.list.array.TIntArrayList;
+@@ -107,7 +109,20 @@ public class RouteGeometryWay extends
+ 			this.route = route;
+ 			coloringChanged = false;
+ 			List<Location> locations = route.getImmutableAllLocations();
+-			if (coloringType.isGradient()) {
++			if (route.getBicycleCoverage() != null) {
++				Map<Integer, GeometryWayStyle<?>> styles = new TreeMap<>();
++				List<BicycleRoute.Facility> facilities = route.getBicycleCoverage().facilities();
++				BicycleRoute.Facility previous = null;
++				for (int i = 0; i < facilities.size(); i++) {
++					BicycleRoute.Facility facility = facilities.get(i);
++					if (facility != previous) {
++						styles.put(i, getSolidWayStyle(facility == BicycleRoute.Facility.MAPPED
++								? 0xFF0077B6 : 0xFF9B459C));
++						previous = facility;
++					}
++				}
++				updateWay(locations, styles, tb);
++			} else if (coloringType.isGradient()) {
+ 				updateGradientWay(tb, locations);
+ 			} else if (coloringType.isRouteInfoAttribute()) {
+ 				updateSolidMultiColorRoute(tb, locations, route.getOriginalRoute());
+diff --git a/OsmAnd/src/net/osmand/plus/views/mapwidgets/widgets/routeinfo/RouteInfoWidget.java b/OsmAnd/src/net/osmand/plus/views/mapwidgets/widgets/routeinfo/RouteInfoWidget.java
+index d19a0fe..91ea114 100644
+--- a/OsmAnd/src/net/osmand/plus/views/mapwidgets/widgets/routeinfo/RouteInfoWidget.java
++++ b/OsmAnd/src/net/osmand/plus/views/mapwidgets/widgets/routeinfo/RouteInfoWidget.java
+@@ -10,11 +10,13 @@ import android.content.Context;
+ import android.graphics.drawable.Drawable;
+ import android.util.Pair;
+ import android.util.TypedValue;
++import android.text.TextUtils;
+ import android.view.Gravity;
+ import android.view.LayoutInflater;
+ import android.view.View;
+ import android.view.ViewGroup.MarginLayoutParams;
+ import android.widget.LinearLayout;
++import android.widget.TextView;
+ 
+ import androidx.annotation.LayoutRes;
+ import androidx.annotation.NonNull;
+@@ -74,6 +76,7 @@ public class RouteInfoWidget extends MapWidget implements ISupportVerticalPanel,
+ 	private boolean renderedNightMode;
+ 
+ 	// views
++	private TextView bicycleCoverage;
+ 	private OutlinedTextContainer tvPrimaryLine1;
+ 	private OutlinedTextContainer tvSecondaryLine1;
+ 	private OutlinedTextContainer tvPrimaryLine2;
+@@ -110,8 +113,17 @@ public class RouteInfoWidget extends MapWidget implements ISupportVerticalPanel,
+ 	private void setupViews() {
+ 		LinearLayout container = (LinearLayout) getView();
+ 		container.removeAllViews();
++		container.setOrientation(LinearLayout.VERTICAL);
+ 		LayoutInflater inflater = UiUtilities.getInflater(mapActivity, nightMode);
+ 		inflater.inflate(getContentLayoutId(), container);
++		bicycleCoverage = new TextView(container.getContext());
++		bicycleCoverage.setGravity(Gravity.CENTER);
++		bicycleCoverage.setTextSize(14);
++		bicycleCoverage.setTextColor(ColorUtilities.getPrimaryTextColor(app, nightMode));
++		bicycleCoverage.setPadding(0, 0, 0, AndroidUtils.dpToPx(app, 4));
++		bicycleCoverage.setVisibility(View.GONE);
++		container.addView(bicycleCoverage, new LinearLayout.LayoutParams(
++				LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+ 		renderedWidgetSize = getWidgetSize();
+ 		renderedNightMode = nightMode;
+ 		collectViews();
+@@ -215,6 +227,11 @@ public class RouteInfoWidget extends MapWidget implements ISupportVerticalPanel,
+ 			return;
+ 		}
+ 		boolean visibilityChanged = updateVisibility(true);
++		String bicycleText = app.getRoutingHelper().getRoute().getBicycleCoverageText(app, false);
++		if (!TextUtils.equals(bicycleCoverage.getText(), bicycleText)) {
++			bicycleCoverage.setText(bicycleText);
++		}
++		AndroidUiHelper.updateVisibility(bicycleCoverage, bicycleText != null);
+ 
+ 		if (!forceUpdate && !visibilityChanged && !isUpdateNeeded(routeInfo)) {
+ 			return;

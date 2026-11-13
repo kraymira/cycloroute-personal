@@ -2,6 +2,8 @@
 
 A cycling map style for **OsmAnd Android**, based on [CycloRoute](https://github.com/OsmAnd-Rendering/Cycling). It highlights bicycle infrastructure, uses muted colours for ordinary roads, and keeps the route line thin so the map remains visible around it.
 
+**[1.4 Android Preview](RELEASE_NOTES.md)** colours mapped bikeways directly on the route and shows their distance and percentage. It uses a separate OsmAnd Nightly APK.
+
 Planned work and optional ideas: **[To-do list](TODO.md)**.
 
 **Version 1.3** translates the offline legend, its bookmark and the bicycle line width control into English. It preserves the three width settings introduced in 1.2, including previously saved Russian setting values. Earlier map and routing behaviour was checked on a Galaxy S23 with OsmAnd **5.4.11**; the English legend, bookmark and width selector were checked on that phone on 5 November 2026. See [validation](VALIDATION.md).
@@ -23,7 +25,7 @@ Open the favourite on the map, zoom to approximately level 17–18 and scroll do
 
 When upgrading from the Russian legend, an old favourite named **«Легенда CycloRoute Personal»** may remain. You can remove that old bookmark and use the English one. The map keeps the same filename, so choose replacement rather than keeping a second copy of the OBF.
 
-## See infrastructure along a planned or active route
+## See infrastructure with the stock OsmAnd map style
 
 Select the intended **map profile** and `CycloRoutePersonalMVP` style as well as your routing profile. Choosing a routing mode in the route panel alone does not necessarily switch the map profile.
 

@@ -1,10 +1,14 @@
 # To-do
 
-Current development backlog for CycloRoute Personal. The items below are not implemented unless checked off.
+Current development backlog for CycloRoute Personal. Checked items are available in the Android preview.
 
 ## Main work
 
-- [ ] **Make infrastructure clearer on the route line.** Investigate colouring the planned and active route by infrastructure type, so riders can distinguish bicycle facilities from ordinary-road connections without inspecting the map beneath a thin line. Treat missing infrastructure tags as unknown rather than proof that no facility exists. Confirm what is possible with stock OsmAnd and BRouter before choosing an implementation.
+The [Android source patch](routing/osmand/README.md) implements the first two items. A signed ARM64 preview APK builds successfully. The route preview and simulated navigation were verified on a Galaxy S23. Real-ride checks remain open.
+
+- [x] **Highlight bicycle infrastructure on the navigation line.** Verified in preview and simulated navigation.
+- [x] **Show bicycle infrastructure as a share of the route.** Verified in the preview and navigation widget, including a route with 0% coverage.
+- [ ] **Check route contrast in night mode and at typical riding zooms.**
 - [ ] **Check automatic recalculation during a real ride.** Deviate from a route and verify that OsmAnd continues to use `cycleways-preferred` through BRouter, respects access and direction restrictions, and keeps the intended route/map appearance.
 
 ## Installation and persistence checks
@@ -16,6 +20,5 @@ Current development backlog for CycloRoute Personal. The items below are not imp
 
 ## Optional ideas
 
-- [ ] Show the percentage of the route with mapped bicycle infrastructure, with a clear definition of which facility types count and how unknown data is handled.
 - [ ] Show route sections with their infrastructure type and length, linked to their position on the map.
 - [ ] Investigate a compact legend over the current map or route, instead of opening the separate offline demonstration map.
