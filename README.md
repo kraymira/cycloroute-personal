@@ -8,6 +8,16 @@ Planned work and optional ideas: **[To-do list](TODO.md)**.
 
 **Version 1.3** translates the offline legend, its bookmark and the bicycle line width control into English. It preserves the three width settings introduced in 1.2, including previously saved Russian setting values. Earlier map and routing behaviour was checked on a Galaxy S23 with OsmAnd **5.4.11**; the English legend, bookmark and width selector were checked on that phone on 5 November 2026. See [validation](VALIDATION.md).
 
+## Engineering and validation
+
+This personal project also demonstrates how I validate changes to an existing product:
+
+- Reproducible packaging and resource/hash checks: [`release.py`](release.py), [`tests/verify_package.py`](tests/verify_package.py).
+- Regression checks using OsmAnd's Java rendering rules: [`tests/VerifyStyle.java`](tests/VerifyStyle.java), [`tests/VerifyWidthModes.java`](tests/VerifyWidthModes.java).
+- Documented Android observations, screenshots, untested cases and rollback: [validation](VALIDATION.md), [development](DEVELOPMENT.md), [release notes](RELEASE_NOTES.md).
+
+Run the standalone package check with `python3 tests/verify_package.py`. Java renderer checks require the environment documented in DEVELOPMENT.md; screenshots record manual device validation, not an Appium suite. Upstream attribution and licences are preserved in [NOTICE.md](NOTICE.md).
+
 ## Install or update
 
 1. Download [CycloRoute-Personal.osf](CycloRoute-Personal.osf) and open it with **OsmAnd**, or use **Settings → Import from file**.
